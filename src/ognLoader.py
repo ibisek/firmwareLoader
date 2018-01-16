@@ -61,14 +61,13 @@ def flash(cpuId, startAddr, dataLen, data):
     
     if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
         print("Writing data.. ", end='')
-        com.write(bytearray(data))
-#         byteCounter = 0
-#         for byte in data:
-#             com.write(byte)
-#             byteCounter += 1
-#             if byteCounter % 100 == 0:
-#                 print(" {}".format(byteCounter), end='')    
-        print("finished.")
+        
+        com.timeout = None
+        numWritten = com.write(data)
+        com.flush()
+        print("{}bytes ".format(numWritten), end='')
+                    
+        print("uploaded.")
 
     print("Waiting for CRC.. ", end='')
     line = readLine(com)    # CRC
