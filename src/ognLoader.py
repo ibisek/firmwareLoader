@@ -3,6 +3,7 @@ Created on Jan 16, 2018
 
 @author: ibisek
 '''
+from debian.changelog import endline
 
 #######[ CONFIGURATION ]#######
 
@@ -46,7 +47,7 @@ def flash(cpuId, startAddr, dataLen, data):
     
     if 'START ADDR' in line:    # expects 4 bytes 0x08002800
         com.write(bytes("\n", 'utf-8'))
-        com.write(bytearray(startAddr)
+        com.write(startAddr)
     
     line = readLine(com)
     print("line3:", line)
@@ -59,19 +60,27 @@ def flash(cpuId, startAddr, dataLen, data):
     print("line4:", line)
     
     if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
-        #com.write(bytearray([0x00, 0x80, 0x00]))    # 32kB
-        pass
+        print("Writing data.. ", end='')
+        com.write(bytearray(data))
+#         byteCounter = 0
+#         for byte in data:
+#             com.write(byte)
+#             byteCounter += 1
+#             if byteCounter % 100 == 0:
+#                 print(" {}".format(byteCounter), end='')    
+        print("finished.")
 
+    print("Waiting for CRC.. ", end='')
     line = readLine(com)    # CRC
     print("line5:", line)
 
 def prepare():
     # cpu ID:
-    ognId = int("0x"+OGN_ID, 16)
+    ognId = int(OGN_ID, 16)
     cpuId = bytearray([(ognId >> 16) & 0xFF, (ognId >> 8) & 0xFF, (ognId & 0xFF)])
     
     # startAddr:
-    startAddr = [0x08, 0x00, 0x28, 0x00])
+    startAddr = bytearray([0x08, 0x00, 0x20, 0x00])
     
     # data & dataLen:
     data = None
@@ -83,19 +92,17 @@ def prepare():
     finally:
         f.close()
     
-    if data:    # bytearray([0x00, 0x80, 0x00])
+    if data:    
         dataLen = len(data)
-        print("data length:", dataLen)
-        dataLen = dataLen.to_bytes(3, byteorder='big')
-        print("dataLen:", dataLen)
-        print("dataLen:", type(dataLen)
+        print("data length: {}B".format(dataLen))
+        dataLen = dataLen.to_bytes(3, byteorder='big')  # bytearray([0x00, 0x80, 0x00])
     
     return (cpuId, startAddr, dataLen, data)    
 
 if __name__ == '__main__':
 
     (cpuId, startAddr, dataLen, data) = prepare()
-#     flash(cpuId, startAddr, dataLen, data)
+    flash(cpuId, startAddr, dataLen, data)
     
     print("KOHEU.")
     
