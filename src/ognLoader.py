@@ -1,14 +1,16 @@
 '''
+Tool for flashing STM32F103-based devices with serialLoader.
+
 Created on Jan 16, 2018
 
 @author: ibisek
 '''
-from debian.changelog import endline
+
 
 #######[ CONFIGURATION ]#######
 
-SERIAL_PORT = '/dev/rfcomm1'
 #SERIAL_PORT = 'COM5'
+SERIAL_PORT = '/dev/rfcomm1'
 
 OGN_ID = '034819'
 
@@ -16,7 +18,18 @@ BIN_FILE = '../bin-files/pokus1blikac.f103.bin'
 
 #########################
 
+
+import re
 import serial
+
+
+def calcCrc(data):
+    crc = 0
+    for b in data:
+        crc = crc ^ b
+    
+    return crc    
+
 
 def readLine(com):
     line = ""
@@ -24,6 +37,7 @@ def readLine(com):
         line += com.readline().decode('utf-8').strip()
         
     return line
+
 
 '''
 @param cpuId           byteArray[3]
@@ -36,28 +50,28 @@ def flash(cpuId, startAddr, dataLen, data):
     
     com.write(bytes("\nPROG", 'utf-8'))
     line = readLine(com)
-    print("line1:", line)
+    #print("line1:", line)
     
     if 'CPU ID' in line:    # expects 3 bytes of lowest CPU id
         com.write(bytes("\n", 'utf-8'))
         com.write(cpuId)
     
     line = readLine(com)
-    print("line2:", line)
+    #print("line2:", line)
     
     if 'START ADDR' in line:    # expects 4 bytes 0x08002800
         com.write(bytes("\n", 'utf-8'))
         com.write(startAddr)
     
     line = readLine(com)
-    print("line3:", line)
+    #print("line3:", line)
          
     if 'DATA LEN' in line:  # expects 3 bytes and length % 4 == 0
         com.write(bytes("\n", 'utf-8'))
         com.write(dataLen)
 
     line = readLine(com)
-    print("line4:", line)
+    #print("line4:", line)
     
     if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
         print("Writing data.. ", end='')
@@ -65,13 +79,25 @@ def flash(cpuId, startAddr, dataLen, data):
         com.timeout = None
         numWritten = com.write(data)
         com.flush()
-        print("{}bytes ".format(numWritten), end='')
+        print("{} bytes ".format(numWritten), end='')
                     
         print("uploaded.")
 
-    print("Waiting for CRC.. ", end='')
+    print("Waiting for CRC.. ")
     line = readLine(com)    # CRC
-    print("line5:", line)
+    #print("line5:", line)
+    
+    pattern = re.compile('\d+')
+    mikroCrc = int(pattern.findall(line)[0])
+
+    dataCrc = calcCrc(data)
+    print(" file: {}\n device: {}\n".format(mikroCrc, dataCrc))
+    
+    if mikroCrc == dataCrc:
+        print("FLASHing OK")
+    else:
+        print("FLASHing FAILED")
+
 
 def prepare():
     # cpu ID:
@@ -93,7 +119,7 @@ def prepare():
     
     if data:    
         dataLen = len(data)
-        print("data length: {}B".format(dataLen))
+        print("Data length: {} B".format(dataLen))
         dataLen = dataLen.to_bytes(3, byteorder='big')  # bytearray([0x00, 0x80, 0x00])
     
     return (cpuId, startAddr, dataLen, data)    
@@ -102,7 +128,5 @@ if __name__ == '__main__':
 
     (cpuId, startAddr, dataLen, data) = prepare()
     flash(cpuId, startAddr, dataLen, data)
-    
-    print("KOHEU.")
     
     
