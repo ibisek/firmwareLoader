@@ -14,7 +14,8 @@ SERIAL_PORT = '/dev/rfcomm1'
 
 OGN_ID = '034819'
 
-BIN_FILE = '../bin-files/pokus1blikac.f103.bin'
+#BIN_FILE = '../bin-files/pokus1blikac.f103.bin'
+BIN_FILE = '../bin-files/aaa.bin'
 
 #########################
 
@@ -71,21 +72,39 @@ def flash(cpuId, startAddr, dataLen, data):
         com.write(dataLen)
 
     line = readLine(com)
-    #print("line4:", line)
+    print("line4:", line)
     
     if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
         print("Writing data.. ", end='')
         
-        com.timeout = None
-        numWritten = com.write(data)
-        com.flush()
-        print("{} bytes ".format(numWritten), end='')
+#         com.timeout = None
+#         numWritten = com.write(data)
+#         com.flush()
+#         print("{} bytes ".format(numWritten), end='')
+    
+        i = 0
+        lastBlock= False
+        while not lastBlock:
+            
+            if (i+1)*1024 < len(data):
+                buf = data[i*1024: (i+1)*1024]
+            else:
+                buf = data[i*1024:]
+                lastBlock = True
+                
+            com.write(buf)
+            
+            if not lastBlock:                       
+                c = None
+                while c != '>':
+                    c = com.read(1).decode('utf-8').strip()
+                    print("c:", c)
                     
         print("uploaded.")
 
     print("Waiting for CRC.. ")
     line = readLine(com)    # CRC
-    #print("line5:", line)
+    print("line5:", line)
     
     pattern = re.compile('\d+')
     mikroCrc = int(pattern.findall(line)[0])
