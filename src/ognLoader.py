@@ -1,5 +1,7 @@
+#!/usr/bin/python3
+
 '''
-Tool for flashing STM32F103-based devices with serialLoader.
+Tool for flashing STM32F103-based devices with serialLoader.f103
 
 Created on Jan 16, 2018
 
@@ -14,14 +16,20 @@ SERIAL_PORT = '/dev/rfcomm1'
 
 OGN_ID = '034819'
 
-#BIN_FILE = '../bin-files/pokus1blikac.f103.bin'
-BIN_FILE = '../bin-files/aaa.bin'
+FILE_NAME = '../bin-files/pokus1blikac.f103.bin'
 
 #########################
 
+DEBUG = False
+PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00]) # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
 
+#########################
+
+import os
 import re
+import sys
 import serial
+from time import sleep
 
 
 def calcCrc(data):
@@ -51,28 +59,28 @@ def flash(cpuId, startAddr, dataLen, data):
     
     com.write(bytes("\nPROG", 'utf-8'))
     line = readLine(com)
-    #print("line1:", line)
+    if DEBUG: print("line1:", line)
     
     if 'CPU ID' in line:    # expects 3 bytes of lowest CPU id
         com.write(bytes("\n", 'utf-8'))
         com.write(cpuId)
     
     line = readLine(com)
-    #print("line2:", line)
+    if DEBUG: print("line2:", line)
     
     if 'START ADDR' in line:    # expects 4 bytes 0x08002800
         com.write(bytes("\n", 'utf-8'))
         com.write(startAddr)
     
     line = readLine(com)
-    #print("line3:", line)
+    if DEBUG: print("line3:", line)
          
     if 'DATA LEN' in line:  # expects 3 bytes and length % 4 == 0
         com.write(bytes("\n", 'utf-8'))
         com.write(dataLen)
 
     line = readLine(com)
-    print("line4:", line)
+    if DEBUG: print("line4:", line)
     
     if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
         print("Writing data.. ", end='')
@@ -82,29 +90,28 @@ def flash(cpuId, startAddr, dataLen, data):
 #         com.flush()
 #         print("{} bytes ".format(numWritten), end='')
     
+        BLOCK_SIZE = 1024
         i = 0
         lastBlock= False
         while not lastBlock:
             
-            if (i+1)*1024 < len(data):
-                buf = data[i*1024: (i+1)*1024]
+            if (i+1)*BLOCK_SIZE < len(data):
+                buf = data[i*BLOCK_SIZE: (i+1)*BLOCK_SIZE]
             else:
-                buf = data[i*1024:]
+                buf = data[i*BLOCK_SIZE:]
                 lastBlock = True
                 
             com.write(buf)
             
-            if not lastBlock:                       
-                c = None
-                while c != '>':
-                    c = com.read(1).decode('utf-8').strip()
-                    print("c:", c)
+            print("#", end='')
+            i += 1
+            sleep(1.2)    # give the uC time to store the bytes into flash; yes - it really needs some time
                     
-        print("uploaded.")
+        print(" done.")
 
     print("Waiting for CRC.. ")
     line = readLine(com)    # CRC
-    print("line5:", line)
+    if DEBUG: print("line5:", line)
     
     pattern = re.compile('\d+')
     mikroCrc = int(pattern.findall(line)[0])
@@ -118,19 +125,19 @@ def flash(cpuId, startAddr, dataLen, data):
         print("FLASHing FAILED")
 
 
-def prepare():
+def prepare(fileName = FILE_NAME):
     # cpu ID:
     ognId = int(OGN_ID, 16)
     cpuId = bytearray([(ognId >> 16) & 0xFF, (ognId >> 8) & 0xFF, (ognId & 0xFF)])
     
     # startAddr:
-    startAddr = bytearray([0x08, 0x00, 0x20, 0x00])
+    startAddr = PROG_START_ADDR
     
     # data & dataLen:
     data = None
     
-    print("File to flash: ", BIN_FILE)
-    f = open(BIN_FILE, "rb")
+    print("File to flash: ", fileName)
+    f = open(fileName, "rb")
     try:
         data = f.read()
     finally:
@@ -143,9 +150,21 @@ def prepare():
     
     return (cpuId, startAddr, dataLen, data)    
 
-if __name__ == '__main__':
+def getFileName():
+    
+    fileName = FILE_NAME
+    if len(sys.argv) > 1:
+        fileName = sys.argv[1]
+    
+    if not os.path.isfile(fileName):
+        print("File '{}' not found.".format(fileName), file=sys.stderr)
+        sys.exit(1)
+    
+    return fileName
 
-    (cpuId, startAddr, dataLen, data) = prepare()
+
+if __name__ == '__main__':
+    
+    fileName = getFileName()    
+    (cpuId, startAddr, dataLen, data) = prepare(fileName)
     flash(cpuId, startAddr, dataLen, data)
-    
-    
