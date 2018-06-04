@@ -12,15 +12,19 @@ Created on Jan 16, 2018
 #######[ CONFIGURATION ]#######
 
 #SERIAL_PORT = 'COM5'
-SERIAL_PORT = '/dev/rfcomm1'
+SERIAL_PORT = '/dev/ttyUSB0'
+# SERIAL_PORT = '/dev/rfcomm0'
 
-OGN_ID = '034819'
+OGN_ID = '062024'
 
-FILE_NAME = '../bin-files/pokus1blikac.f103.bin'
+# FILE_NAME = '../bin-files/aaa.bin'
+# FILE_NAME = '../bin-files/1020.bin'
+# FILE_NAME = '../bin-files/pokus1blikac.f103-0x2800.bin'
+FILE_NAME = '../bin-files/ognCube2.f103-0x2800.bin'
 
 #########################
 
-DEBUG = False
+DEBUG = True
 PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00]) # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
 
 #########################
@@ -94,7 +98,6 @@ def flash(cpuId, startAddr, dataLen, data):
         i = 0
         lastBlock= False
         while not lastBlock:
-            
             if (i+1)*BLOCK_SIZE < len(data):
                 buf = data[i*BLOCK_SIZE: (i+1)*BLOCK_SIZE]
             else:
@@ -105,7 +108,9 @@ def flash(cpuId, startAddr, dataLen, data):
             
             print("#", end='')
             i += 1
-            sleep(1.2)    # give the uC time to store the bytes into flash; yes - it really needs some time
+            
+            if not lastBlock: 
+                sleep(1.4)    # give the uC time to store the bytes into flash; yes - it really needs some time
                     
         print(" done.")
 
@@ -117,7 +122,7 @@ def flash(cpuId, startAddr, dataLen, data):
     mikroCrc = int(pattern.findall(line)[0])
 
     dataCrc = calcCrc(data)
-    print(" file: {}\n device: {}\n".format(mikroCrc, dataCrc))
+    print(" file: {}\n device: {}\n".format(dataCrc, mikroCrc))
     
     if mikroCrc == dataCrc:
         print("FLASHing OK")
