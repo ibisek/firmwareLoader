@@ -12,15 +12,18 @@ Created on Jan 16, 2018
 #######[ CONFIGURATION ]#######
 
 #SERIAL_PORT = 'COM5'
-SERIAL_PORT = '/dev/ttyUSB0'
-# SERIAL_PORT = '/dev/rfcomm0'
+# SERIAL_PORT = '/dev/ttyUSB0'
+SERIAL_PORT = '/dev/rfcomm0'
 
-OGN_ID = '062024'
+#OGN_ID = '062024'
+OGN_ID = '173153'
 
 # FILE_NAME = '../bin-files/aaa.bin'
-# FILE_NAME = '../bin-files/1020.bin'
+# FILE_NAME = '../bin-files/512.bin'
 # FILE_NAME = '../bin-files/pokus1blikac.f103-0x2800.bin'
 FILE_NAME = '../bin-files/ognCube2.f103-0x2800.bin'
+
+# FILE_NAME = '/home/ibisek/wqz/prog/stm32/ognCube2.f103/releases/ognCube2.f103-2018-06-01-1134-batt-cihlar.bin'
 
 #########################
 
@@ -110,7 +113,7 @@ def flash(cpuId, startAddr, dataLen, data):
             i += 1
             
             if not lastBlock: 
-                sleep(1.4)    # give the uC time to store the bytes into flash; yes - it really needs some time
+                sleep(1.2)    # give the uC time to store the bytes into flash; yes - it really needs some time (1.2s seems to be viable minimum)
                     
         print(" done.")
 
