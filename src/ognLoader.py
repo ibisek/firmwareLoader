@@ -24,7 +24,6 @@ class OgnLoader(object):
     SERIAL_PORT = '/dev/rfcomm0'
     
     OGN_ID = '173153'
-    # OGN_ID = '173153'
     
     # FILE_NAME = '../bin-files/aaa.bin'
     # FILE_NAME = '../bin-files/512.bin'
@@ -135,9 +134,9 @@ class OgnLoader(object):
             print("FLASHing FAILED")
     
     
-    def prepare(self, fileName = FILE_NAME):
+    def prepare(self, fileName = FILE_NAME, ognId=OGN_ID):
         # cpu ID:
-        ognId = int(self.OGN_ID, 16)
+        ognId = int(ognId, 16)
         cpuId = bytearray([(ognId >> 16) & 0xFF, (ognId >> 8) & 0xFF, (ognId & 0xFF)])
         
         # startAddr:
@@ -174,7 +173,7 @@ def getFileName():
 def getOgnId():
     ognId = OgnLoader.OGN_ID
     if len(sys.argv) > 2:
-        ognId = sys.argv[2]
+        ognId = str(sys.argv[2]).encode('ascii').decode('ascii')
         
     print("Using OGN ID", ognId)
     
@@ -188,5 +187,5 @@ if __name__ == '__main__':
     fileName = getFileName()
     ognId = getOgnId()
     
-    (cpuId, startAddr, dataLen, data) = loader.prepare(fileName)
-    loader.flash(ognId, startAddr, dataLen, data)
+    (cpuId, startAddr, dataLen, data) = loader.prepare(fileName, ognId)
+    loader.flash(cpuId, startAddr, dataLen, data)
