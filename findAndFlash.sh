@@ -51,13 +51,13 @@ do
       continue
     fi
 
-    echo "Found OGN CUBE tracker ID '$ognId' with BT MAC addr '$macAddr'"
+    echo -e "\nFound OGN CUBE tracker ID [$ognId] with BT MAC addr '$macAddr'"
 
     rfcomm unbind $PORT 2>&1 > /dev/null
     rfcomm bind $PORT $macAddr
 
-    echo -e "--------------------------\nAllright, let's get ready!\n\nPower cycle (OFF->ON) the tracker\nand\ncount to three, or (optimally)"
-    read -p "AFTER one long flash press ENTER"
+    echo -e "--------------------------\nAllright, let's get ready!\n\n(1) Power cycle (OFF->ON) the tracker\n then\n(2) count to three, or (optimally) after ONE long LED flash\n and finally"
+    read -p "(3) press ENTER"
 
     ./flashFirmware.sh $FILE $ognId
 
