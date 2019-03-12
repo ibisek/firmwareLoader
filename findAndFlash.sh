@@ -35,12 +35,12 @@ available="`hcitool scan`"
 readarray -t lines <<<"$available"
 lines=`echo $lines| grep OGN`
 
+macAddr="null"
+ognId="null"
 regex="([A-F:0-9:]+)\s+OGN CUBE\s([A-F0-9]+)"
 for line in "${lines[@]}"
 do
     # echo "LINE: $line"
-    macAddr="null"
-    ognId="null"
 
     if [[ $line =~ $regex ]]
     then
@@ -53,11 +53,14 @@ do
 
     echo "Found OGN CUBE tracker ID '$ognId' with BT MAC addr '$macAddr'"
 
-    rfcomm unbind $PORT
+    rfcomm unbind $PORT 2>&1 > /dev/null
     rfcomm bind $PORT $macAddr
 
-    echo -e "\nPower cycle (OFF->ON) the tracker and .."
+    echo -e "--------------------------\nAllright, let's get ready!\n\nPower cycle (OFF->ON) the tracker\nand\ncount to three, or (optimally)"
     read -p "AFTER one long flash press ENTER"
 
     ./flashFirmware.sh $FILE $ognId
+
+    # sleep 2
+    # /usr/local/bin/miniterm.py $PORT 115200
 done
