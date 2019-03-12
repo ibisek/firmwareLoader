@@ -56,10 +56,8 @@ do
     rfcomm unbind $PORT
     rfcomm bind $PORT $macAddr
 
-    read -p "Power cycle (OFF->ON) the tracker and press ENTER"
+    echo -e "\nPower cycle (OFF->ON) the tracker and .."
+    read -p "AFTER one long flash press ENTER"
 
     ./flashFirmware.sh $FILE $ognId
 done
-
-#echo "$lines"
-#echo "${lines[1]}"
