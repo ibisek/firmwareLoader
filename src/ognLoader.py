@@ -52,10 +52,18 @@ class OgnLoader(object):
     def readLine(self, com):
         line = ""
         while len(line) == 0:
-            line += com.readline().decode('utf-8').strip()
+            try:
+                line += com.readline().decode('utf-8').strip()
+            except UnicodeDecodeError:
+                # after RST there is gibberish as bootloader first tries to setup speed
+                pass
 
         return line
-
+    
+    def readOutBuffer(self, com):
+        data = com.read_all()
+        
+        return data
 
     '''
     @param cpuId           byteArray[3]
@@ -65,6 +73,14 @@ class OgnLoader(object):
     '''
     def flash(self, cpuId, startAddr, dataLen, data):
         com = serial.Serial(self.SERIAL_PORT, baudrate=self.BAUD_RATE, timeout=1)
+        
+        # for firmwares already supporting RST command:
+        print("Executing RST command now..")
+        com.write(bytes("\n$CMDRST\n", 'utf-8'))
+        sleep(10)    # wait for 8 seconds before flashing.. 
+        lines = self.readOutBuffer(com)
+        if self.DEBUG:
+            print("Data after RST:", lines)
 
         com.write(bytes("\nPROG", 'utf-8'))
         line = self.readLine(com)

@@ -10,7 +10,9 @@
 #
 
 PORT="rfcomm0"
-FILE="./bin-files/ognCube3.f103-2019-03-12-4PK-0x2800.bin"
+
+#FILE="./bin-files/ognCube3.f103-2019-03-21-ACC-0x2800.bin"
+FILE="./bin-files/ognCube3.f103-2019-04-05-4PK-0x2800.bin"
 
 #
 #   THE MEAT!
@@ -56,8 +58,8 @@ do
     rfcomm unbind $PORT 2>&1 > /dev/null
     rfcomm bind $PORT $macAddr
 
-    echo -e "--------------------------\nAllright, let's get ready!\n\n(1) Power cycle (OFF->ON) the tracker\n then\n(2) count to three, or (optimally) after ONE long LED flash\n and finally"
-    read -p "(3) press ENTER"
+    #echo -e "--------------------------\nAllright, let's get ready!\n\n(1) Power cycle (OFF->ON) the tracker\n then\n(2) count to three, or (optimally) after ONE long LED flash\n and finally"
+    #read -p "(3) press ENTER"
 
     ./flashFirmware.sh $FILE $ognId
 
