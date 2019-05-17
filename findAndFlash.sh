@@ -11,8 +11,9 @@
 
 PORT="rfcomm0"
 
-#FILE="./bin-files/ognCube3.f103-2019-03-21-ACC-0x2800.bin"
-FILE="./bin-files/ognCube3.f103-2019-04-05-4PK-0x2800.bin"
+FILE="./bin-files/ognCube3.f103-2019-05-06-GLD-0x2800.bin"
+#FILE="./bin-files/ognCube3.f103-2019-05-06-TOW-0x2800.bin"
+#FILE="./bin-files/ognCube3.f103-2019-05-06-TOW-TRACKLOG-0x2800.bin"
 
 #
 #   THE MEAT!
@@ -24,6 +25,8 @@ then
   echo "This script needs to be executed under root!"
   exit 1
 fi
+
+echo "Searching for BT devices.."
 
 available="`hcitool scan`"
 # available="$(hcitool scan)"

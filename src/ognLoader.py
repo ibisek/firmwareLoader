@@ -132,7 +132,7 @@ class OgnLoader(object):
                 i += 1
 
                 if not lastBlock:
-                    sleep(1.2)    # give the uC time to store the bytes into flash; yes - it really needs some time (1.2s seems to be viable minimum)
+                    sleep(0.9)    # give the uC time to store the bytes into flash; yes - it really needs some time (1.2s seems to be viable minimum)
 
             print(" done.")
 
