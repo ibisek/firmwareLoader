@@ -11,9 +11,7 @@
 
 PORT="rfcomm0"
 
-FILE="./bin-files/ognCube3.f103-2019-05-06-GLD-0x2800.bin"
-#FILE="./bin-files/ognCube3.f103-2019-05-06-TOW-0x2800.bin"
-#FILE="./bin-files/ognCube3.f103-2019-05-06-TOW-TRACKLOG-0x2800.bin"
+FILE="./releases/ognCube3.f103-2019-05-13-GLD-0x2800.bin"
 
 #
 #   THE MEAT!
