@@ -14,6 +14,15 @@ import sys
 import serial
 from time import sleep
 
+class TextColors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 class OgnLoader(object):
 
@@ -147,9 +156,9 @@ class OgnLoader(object):
         print(" file: {}\n device: {}\n".format(dataCrc, mikroCrc))
 
         if mikroCrc == dataCrc:
-            print("FLASHing OK")
+            print(TextColors.OKGREEN + 'FLASHing OK\n' + TextColors.ENDC)
         else:
-            print("FLASHing FAILED")
+            print(TextColors.FAIL + 'FLASHing FAILED\n' + TextColors.ENDC)
 
 
     def prepare(self, fileName = FILE_NAME, ognId=OGN_ID):
@@ -193,7 +202,7 @@ def getOgnId():
     if len(sys.argv) > 2:
         ognId = str(sys.argv[2]).encode('ascii').decode('ascii')
 
-    print("Using OGN ID", ognId)
+    print('Using OGN ID ' + TextColors.BOLD +  ognId + TextColors.ENDC)
 
     return ognId
 
