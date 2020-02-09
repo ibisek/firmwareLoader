@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#
+# Connects all available CUBE units to /dev/rfcomm{$i} where i>=0
+#
+
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
@@ -20,8 +24,6 @@ ognId="null"
 regex="([A-F:0-9:]+)\s+OGN CUBE\s([A-F0-9]+)"
 for line in "${lines[@]}"
 do
-    # echo "LINE: $line"
-
     if [[ $line =~ $regex ]]
     then
         macAddr="${BASH_REMATCH[1]}"
