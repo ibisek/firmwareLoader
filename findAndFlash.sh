@@ -13,7 +13,10 @@ PORT="rfcomm0"
 
 #FILE="./bin-files/ognCube3.f103-2019-06-18-GLD-0x2800.bin"
 #FILE="./bin-files/ognCube3.f103-2019-06-18-TOW-0x2800.bin"
-FILE="./bin-files/ognCube3.f103-2019-07-03-GLD-36MHz-0x2800.bin"
+#FILE="./bin-files/ognCube3.f103-2019-07-03-GLD-36MHz-0x2800.bin"
+#FILE="./bin-files/ognCube-experimental.bin"
+#FILE="./bin-files/ognCube3.f103-2020-02-07-UAV-36MHz-0x2800.bin"
+FILE="./bin-files/ognCube.bin"
 
 #
 #   THE MEAT!
@@ -64,7 +67,7 @@ do
     #echo -e "--------------------------\nAllright, let's get ready!\n\n(1) Power cycle (OFF->ON) the tracker\n then\n(2) count to three, or (optimally) after ONE long LED flash\n and finally"
     #read -p "(3) press ENTER"
 
-    ./flashFirmware.sh $FILE $ognId
+    ./flashFirmware.sh /dev/$PORT $FILE $ognId
 
     # sleep 2
     # /usr/local/bin/miniterm.py $PORT 115200
