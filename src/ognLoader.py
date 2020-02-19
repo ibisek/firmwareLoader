@@ -68,10 +68,10 @@ class OgnLoader(object):
                 pass
 
         return line
-    
+
     def readOutBuffer(self, com):
         data = com.read_all()
-        
+
         return data
 
     '''
@@ -80,13 +80,13 @@ class OgnLoader(object):
     @param dataLen       byteArray[3]
     @param data             byteArray[dataLen]
     '''
-    def flash(self, cpuId, startAddr, dataLen, data):
-        com = serial.Serial(self.SERIAL_PORT, baudrate=self.BAUD_RATE, timeout=1)
-        
+    def flash(self, port, cpuId, startAddr, dataLen, data):
+        com = serial.Serial(port, baudrate=self.BAUD_RATE, timeout=1)
+
         # for firmwares already supporting RST command:
         print("Executing RST command now..")
         com.write(bytes("\n$CMDRST\n", 'utf-8'))
-        sleep(10)    # wait for 8 seconds before flashing.. 
+        sleep(10)    # wait for 8 seconds before flashing..
         lines = self.readOutBuffer(com)
         if self.DEBUG:
             print("Data after RST:", lines)
@@ -186,10 +186,19 @@ class OgnLoader(object):
 
         return (cpuId, startAddr, dataLen, data)
 
+def getPort():
+    port = OgnLoader.SERIAL_PORT
+    if len(sys.argv) > 1:
+        port = sys.argv[1]
+
+    print('Using port ' + TextColors.BOLD +  port + TextColors.ENDC)
+
+    return port
+
 def getFileName():
     fileName = OgnLoader.FILE_NAME
-    if len(sys.argv) > 1:
-        fileName = sys.argv[1]
+    if len(sys.argv) > 2:
+        fileName = sys.argv[2]
 
     if not os.path.isfile(fileName):
         print("File '{}' not found.".format(fileName), file=sys.stderr)
@@ -199,8 +208,8 @@ def getFileName():
 
 def getOgnId():
     ognId = OgnLoader.OGN_ID
-    if len(sys.argv) > 2:
-        ognId = str(sys.argv[2]).encode('ascii').decode('ascii')
+    if len(sys.argv) > 3:
+        ognId = str(sys.argv[3]).encode('ascii').decode('ascii')
 
     print('Using OGN ID ' + TextColors.BOLD +  ognId + TextColors.ENDC)
 
@@ -211,8 +220,9 @@ if __name__ == '__main__':
 
     loader = OgnLoader()
 
+    port = getPort()
     fileName = getFileName()
     ognId = getOgnId()
 
     (cpuId, startAddr, dataLen, data) = loader.prepare(fileName, ognId)
-    loader.flash(cpuId, startAddr, dataLen, data)
+    loader.flash(port, cpuId, startAddr, dataLen, data)
