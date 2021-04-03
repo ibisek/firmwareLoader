@@ -14,6 +14,7 @@ import sys
 import serial
 from time import sleep
 
+
 class TextColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -24,8 +25,8 @@ class TextColors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-class OgnLoader(object):
 
+class OgnLoader(object):
     #######[ CONFIGURATION ]#######
 
     # SERIAL_PORT = 'COM5'
@@ -45,10 +46,10 @@ class OgnLoader(object):
     #########################
 
     DEBUG = True
-    PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00]) # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
+    # PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
+    PROG_START_ADDR = bytearray([0x08, 0x00, 0x20, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
 
     #########################
-
 
     def calcCrc(self, data):
         crc = 0
@@ -56,7 +57,6 @@ class OgnLoader(object):
             crc = crc ^ b
 
         return crc
-
 
     def readLine(self, com):
         line = ""
@@ -74,19 +74,21 @@ class OgnLoader(object):
 
         return data
 
-    '''
-    @param cpuId           byteArray[3]
-    @param startAddr     byteArray[4]
-    @param dataLen       byteArray[3]
-    @param data             byteArray[dataLen]
-    '''
-    def flash(self, port, cpuId, startAddr, dataLen, data):
+    def flash(self, port, cpuId, startAddr, dataLen, data, blockSize):
+        """
+        @param cpuId        byteArray[3]
+        @param startAddr    byteArray[4]
+        @param dataLen      byteArray[3]
+        @param data         byteArray[dataLen]
+        @param blockSize    1024 for F103, 4096 for L152
+        """
+
         com = serial.Serial(port, baudrate=self.BAUD_RATE, timeout=1)
 
         # for firmwares already supporting RST command:
         print("Executing RST command now..")
         com.write(bytes("\n$CMDRST\n", 'utf-8'))
-        sleep(10)    # wait for 8 seconds before flashing..
+        sleep(10)  # wait for 8 seconds before flashing..
         lines = self.readOutBuffer(com)
         if self.DEBUG:
             print("Data after RST:", lines)
@@ -95,14 +97,14 @@ class OgnLoader(object):
         line = self.readLine(com)
         if self.DEBUG: print("line1:", line)
 
-        if 'CPU ID' in line:    # expects 3 bytes of lowest CPU id
+        if 'CPU ID' in line:  # expects 3 bytes of lowest CPU id
             com.write(bytes("\n", 'utf-8'))
             com.write(cpuId)
 
         line = self.readLine(com)
         if self.DEBUG: print("line2:", line)
 
-        if 'START ADDR' in line:    # expects 4 bytes 0x08002800
+        if 'START ADDR' in line:  # expects 4 bytes 0x08002800 (F103) or  0x08002000 (L152)
             com.write(bytes("\n", 'utf-8'))
             com.write(startAddr)
 
@@ -119,49 +121,48 @@ class OgnLoader(object):
         if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
             print("Writing data.. ", end='')
 
-    #         com.timeout = None
-    #         numWritten = com.write(data)
-    #         com.flush()
-    #         print("{} bytes ".format(numWritten), end='')
+            #         com.timeout = None
+            #         numWritten = com.write(data)
+            #         com.flush()
+            #         print("{} bytes ".format(numWritten), end='')
 
-            BLOCK_SIZE = 1024
             i = 0
-            lastBlock= False
+            lastBlock = False
             while not lastBlock:
-                if (i+1)*BLOCK_SIZE < len(data):
-                    buf = data[i*BLOCK_SIZE: (i+1)*BLOCK_SIZE]
+                if (i + 1) * blockSize < len(data):
+                    buf = data[i * blockSize: (i + 1) * blockSize]
                 else:
-                    buf = data[i*BLOCK_SIZE:]
+                    buf = data[i * blockSize:]
                     lastBlock = True
 
                 com.write(buf)
 
-                print("#", end='')
+                print(TextColors.WARNING + "#" + TextColors.ENDC, end='')
                 sys.stdout.flush()
                 i += 1
 
                 if not lastBlock:
-                    sleep(0.9)    # give the uC time to store the bytes into flash; yes - it really needs some time (1.2s seems to be viable minimum)
+                    # sleep(0.9)    # give the uC time to store the bytes into flash; yes - it really needs some time (1.2s seems to be viable minimum)
+                    sleep(1 * (blockSize / 1024))  # L152; writing 1kB of data seems to take approx 0.9s
 
             print(" done.")
 
         print("Waiting for CRC.. ")
-        line = self.readLine(com)    # CRC
+        line = self.readLine(com)  # CRC
         if self.DEBUG: print("line5:", line)
 
-        pattern = re.compile('\d+')
+        pattern = re.compile(r'\d+')
         mikroCrc = int(pattern.findall(line)[0])
 
         dataCrc = self.calcCrc(data)
         print(" file: {}\n device: {}\n".format(dataCrc, mikroCrc))
 
         if mikroCrc == dataCrc:
-            print(TextColors.OKGREEN + 'FLASHing OK\n' + TextColors.ENDC)
+            print(TextColors.BOLD + TextColors.OKGREEN + 'FLASHing OK\n' + TextColors.ENDC)
         else:
-            print(TextColors.FAIL + 'FLASHing FAILED\n' + TextColors.ENDC)
+            print(TextColors.BOLD + TextColors.FAIL + 'FLASHing FAILED\n' + TextColors.ENDC)
 
-
-    def prepare(self, fileName = FILE_NAME, ognId=OGN_ID):
+    def prepare(self, fileName=FILE_NAME, ognId=OGN_ID):
         # cpu ID:
         ognId = int(ognId, 16)
         cpuId = bytearray([(ognId >> 16) & 0xFF, (ognId >> 8) & 0xFF, (ognId & 0xFF)])
@@ -186,14 +187,16 @@ class OgnLoader(object):
 
         return (cpuId, startAddr, dataLen, data)
 
+
 def getPort():
     port = OgnLoader.SERIAL_PORT
     if len(sys.argv) > 1:
         port = sys.argv[1]
 
-    print('Using port ' + TextColors.BOLD +  port + TextColors.ENDC)
+    print('Using port ' + TextColors.BOLD + port + TextColors.ENDC)
 
     return port
+
 
 def getFileName():
     fileName = OgnLoader.FILE_NAME
@@ -206,23 +209,34 @@ def getFileName():
 
     return fileName
 
+
 def getOgnId():
     ognId = OgnLoader.OGN_ID
     if len(sys.argv) > 3:
         ognId = str(sys.argv[3]).encode('ascii').decode('ascii')
 
-    print('Using OGN ID ' + TextColors.BOLD +  ognId + TextColors.ENDC)
+    print('Using OGN ID ' + TextColors.BOLD + ognId + TextColors.ENDC)
 
     return ognId
 
 
-if __name__ == '__main__':
+def getBlockSize():
+    blockSize = 1024
+    if len(sys.argv) > 4:
+        blockSize = int(str(sys.argv[4]).encode('ascii').decode('ascii'))
 
+    print('Using BLOCK_SIZE ' + TextColors.BOLD + str(blockSize) + TextColors.ENDC)
+
+    return blockSize
+
+
+if __name__ == '__main__':
     loader = OgnLoader()
 
     port = getPort()
     fileName = getFileName()
     ognId = getOgnId()
+    blockSize = getBlockSize()
 
     (cpuId, startAddr, dataLen, data) = loader.prepare(fileName, ognId)
-    loader.flash(port, cpuId, startAddr, dataLen, data)
+    loader.flash(port=port, cpuId=cpuId, startAddr=startAddr, dataLen=dataLen, data=data, blockSize=blockSize)
