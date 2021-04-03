@@ -2,7 +2,7 @@
 
 #
 # Script for automatic flashing of pile of OGN CUBE trackers.
-# Needs to be run in sudo.
+# Needs to be executed with sudo.
 #
 
 #
@@ -16,7 +16,8 @@ PORT="rfcomm0"
 #FILE="./bin-files/ognCube3.f103-2019-07-03-GLD-36MHz-0x2800.bin"
 #FILE="./bin-files/ognCube-experimental.bin"
 #FILE="./bin-files/ognCube3.f103-2020-02-07-UAV-36MHz-0x2800.bin"
-FILE="./bin-files/ognCube.bin"
+#FILE="./bin-files/ognCube.f103.bin"
+FILE="./bin-files/ognCube.l152.bin"
 
 #
 #   THE MEAT!
@@ -48,7 +49,7 @@ ognId="null"
 regex="([A-F:0-9:]+)\s+OGN CUBE\s([A-F0-9]+)"
 for line in "${lines[@]}"
 do
-    # echo "LINE: $line"
+    echo "LINE: $line"
 
     if [[ $line =~ $regex ]]
     then
