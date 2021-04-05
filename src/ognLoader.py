@@ -142,8 +142,10 @@ class OgnLoader(object):
                 i += 1
 
                 if not lastBlock:
-                    # sleep(0.9)    # give the uC time to store the bytes into flash; yes - it really needs some time (1.2s seems to be viable minimum)
-                    sleep(1 * (blockSize / 1024))  # L152; writing 1kB of data seems to take approx 0.9s
+                    # Give the uC time to store the bytes into flash.
+                    # And yes - it really needs some time (1.2s seems to be reasonable time to write 1kB).
+                    # sleep(0.9)
+                    sleep(1.2 * (blockSize / 1024))
 
             print(" done.")
 
