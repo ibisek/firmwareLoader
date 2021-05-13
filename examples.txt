@@ -1,0 +1,4 @@
+
+
+cube 3.5:
+    ./flashFirmware.sh /dev/rfcomm1 ./bin-files/ognCube.l152.bin C35001 256
