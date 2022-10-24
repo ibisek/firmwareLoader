@@ -34,20 +34,21 @@ class OgnLoader(object):
     SERIAL_PORT = '/dev/rfcomm0'
     BAUD_RATE = 115200
 
-    OGN_ID = '173153'
+    OGN_ID = '074812'
 
     # FILE_NAME = '../bin-files/aaa.bin'
     # FILE_NAME = '../bin-files/512.bin'
     # FILE_NAME = '../bin-files/pokus1blikac.f103-0x2800.bin'
-    FILE_NAME = '../bin-files/ognCube2.f103-0x2800.bin'
+    # FILE_NAME = '../bin-files/ognCube2.f103-0x2800.bin'
+    FILE_NAME = '../bin-files/ognCube.bin'
 
     # FILE_NAME = '/home/ibisek/wqz/prog/stm32/ognCube2.f103/releases/ognCube2.f103-2018-06-01-1134-batt-cihlar.bin'
 
     #########################
 
     DEBUG = True
-    # PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
-    PROG_START_ADDR = bytearray([0x08, 0x00, 0x20, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
+    PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
+    # PROG_START_ADDR = bytearray([0x08, 0x00, 0x20, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
 
     #########################
 
@@ -80,7 +81,7 @@ class OgnLoader(object):
         @param startAddr    byteArray[4]
         @param dataLen      byteArray[3]
         @param data         byteArray[dataLen]
-        @param blockSize    1024 for F103, 4096 for L152
+        @param blockSize    1024 for F103, 256 for L152
         """
 
         com = serial.Serial(port, baudrate=self.BAUD_RATE, timeout=1)
