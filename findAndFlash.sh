@@ -11,14 +11,6 @@
 
 PORT="rfcomm0"
 
-#FILE="./bin-files/ognCube3.f103-2019-06-18-GLD-0x2800.bin"
-#FILE="./bin-files/ognCube3.f103-2019-06-18-TOW-0x2800.bin"
-#FILE="./bin-files/ognCube3.f103-2019-07-03-GLD-36MHz-0x2800.bin"
-#FILE="./bin-files/ognCube-experimental.bin"
-#FILE="./bin-files/ognCube3.f103-2020-02-07-UAV-36MHz-0x2800.bin"
-#FILE="./bin-files/ognCube.f103.bin"
-FILE="./bin-files/ognCube.l152.bin"
-
 #
 #   THE MEAT!
 #
@@ -29,6 +21,31 @@ then
   echo "This script needs to be executed under root!"
   exit 1
 fi
+
+#
+# Select one firmware from the list of .bin files
+#
+
+files=($(ls -f ./bin-files/*bin))
+
+echo "List of available firmwares:"
+i=0
+for file in "${files[@]}"
+do
+  i=$((i+1))
+  echo -e "  [$i]\t$file"
+done
+
+read -p "Choose one <1, $i>: " i
+
+i=$((i--))
+fwFile=${files[$i]}
+
+echo "Chosen fw: $fwFile"
+
+#
+# .. and let's do the stuff!
+#
 
 echo "Searching for BT devices.."
 
@@ -68,8 +85,9 @@ do
     #echo -e "--------------------------\nAllright, let's get ready!\n\n(1) Power cycle (OFF->ON) the tracker\n then\n(2) count to three, or (optimally) after ONE long LED flash\n and finally"
     #read -p "(3) press ENTER"
 
-    #./flashFirmware.sh /dev/$PORT $FILE $ognId
-    ./flashFirmware.sh /dev/$PORT $FILE $ognId 256
+    #./flashFirmware.sh /dev/$PORT $fwFile $ognId
+    ./flashFirmware.sh /dev/$PORT $fwFile $ognId 1024 # f103
+#    ./flashFirmware.sh /dev/$PORT $fwFile $ognId 256  # l152
 
     # sleep 2
     # /usr/local/bin/miniterm.py $PORT 115200
