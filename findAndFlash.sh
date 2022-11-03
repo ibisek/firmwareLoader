@@ -38,7 +38,7 @@ done
 
 read -p "Choose one <1, $i>: " i
 
-i=$((i--))
+i=$((i-1))
 fwFile=${files[$i]}
 
 echo "Chosen fw: $fwFile"
