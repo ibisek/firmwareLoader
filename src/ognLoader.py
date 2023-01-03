@@ -94,30 +94,34 @@ class OgnLoader(object):
         if self.DEBUG:
             print("Data after RST:", lines)
 
+        if self.DEBUG: print("[INFO] Sending PROG")
         com.write(bytes("\nPROG", 'utf-8'))
         line = self.readLine(com)
-        if self.DEBUG: print("line1:", line)
+        if self.DEBUG: print("\nline1:", line)
 
+        if self.DEBUG: print(f"[INFO] Sending cpuId {cpuId}")
         if 'CPU ID' in line:  # expects 3 bytes of lowest CPU id
             com.write(bytes("\n", 'utf-8'))
             com.write(cpuId)
 
         line = self.readLine(com)
-        if self.DEBUG: print("line2:", line)
+        if self.DEBUG: print("\nline2:", line)
 
+        if self.DEBUG: print(f"[INFO] Sending startAddr {startAddr}")
         if 'START ADDR' in line:  # expects 4 bytes 0x08002800 (F103) or  0x08002000 (L152)
             com.write(bytes("\n", 'utf-8'))
             com.write(startAddr)
 
         line = self.readLine(com)
-        if self.DEBUG: print("line3:", line)
+        if self.DEBUG: print("\nline3:", line)
 
+        if self.DEBUG: print(f"[INFO] Seding dataLen: {dataLen}")
         if 'DATA LEN' in line:  # expects 3 bytes and length % 4 == 0
             com.write(bytes("\n", 'utf-8'))
             com.write(dataLen)
 
         line = self.readLine(com)
-        if self.DEBUG: print("line4:", line)
+        if self.DEBUG: print("\nline4:", line)
 
         if 'OK' in line:  # expects [DATA LEN] bytes to FLASH
             print("Writing data.. ", end='')
