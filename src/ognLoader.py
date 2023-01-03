@@ -47,8 +47,8 @@ class OgnLoader(object):
     #########################
 
     DEBUG = True
-    PROG_START_ADDR = bytearray([0x08, 0x00, 0x28, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
-    # PROG_START_ADDR = bytearray([0x08, 0x00, 0x20, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
+    PROG_START_ADDR_C2 = bytearray([0x08, 0x00, 0x28, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
+    PROG_START_ADDR_C3 = bytearray([0x08, 0x00, 0x20, 0x00])  # (0x1800 = 6kB; 0x2000 = 8kB; 0x2800 = 10kB)
 
     #########################
 
@@ -94,28 +94,28 @@ class OgnLoader(object):
         if self.DEBUG:
             print("Data after RST:", lines)
 
-        if self.DEBUG: print("[INFO] Sending PROG")
+        # if self.DEBUG: print("\t Sending PROG")
         com.write(bytes("\nPROG", 'utf-8'))
         line = self.readLine(com)
-        if self.DEBUG: print("\nline1:", line)
+        if self.DEBUG: print("line1:", line)
 
-        if self.DEBUG: print(f"[INFO] Sending cpuId {cpuId}")
+        # if self.DEBUG: print(f"\tSending cpuId {cpuId}")
         if 'CPU ID' in line:  # expects 3 bytes of lowest CPU id
             com.write(bytes("\n", 'utf-8'))
             com.write(cpuId)
 
         line = self.readLine(com)
-        if self.DEBUG: print("\nline2:", line)
+        if self.DEBUG: print("line2:", line)
 
-        if self.DEBUG: print(f"[INFO] Sending startAddr {startAddr}")
+        # if self.DEBUG: print(f"\tSending startAddr {startAddr}")
         if 'START ADDR' in line:  # expects 4 bytes 0x08002800 (F103) or  0x08002000 (L152)
             com.write(bytes("\n", 'utf-8'))
             com.write(startAddr)
 
         line = self.readLine(com)
-        if self.DEBUG: print("\nline3:", line)
+        if self.DEBUG: print("line3:", line)
 
-        if self.DEBUG: print(f"[INFO] Seding dataLen: {dataLen}")
+        # if self.DEBUG: print(f"[INFO] Seding dataLen: {dataLen}")
         if 'DATA LEN' in line:  # expects 3 bytes and length % 4 == 0
             com.write(bytes("\n", 'utf-8'))
             com.write(dataLen)
@@ -170,12 +170,13 @@ class OgnLoader(object):
             print(TextColors.BOLD + TextColors.FAIL + 'FLASHing FAILED\n' + TextColors.ENDC)
 
     def prepare(self, fileName=FILE_NAME, ognId=OGN_ID):
+        # startAddr:
+        startAddr = self.PROG_START_ADDR_C3 if OGN_CUBE_GEN == "C3" else self.PROG_START_ADDR_C2
+        print(f"startAddr for GEN {OGN_CUBE_GEN}: {startAddr}")
+
         # cpu ID:
         ognId = int(ognId, 16)
         cpuId = bytearray([(ognId >> 16) & 0xFF, (ognId >> 8) & 0xFF, (ognId & 0xFF)])
-
-        # startAddr:
-        startAddr = self.PROG_START_ADDR
 
         # data & dataLen:
         data = None
@@ -244,6 +245,10 @@ if __name__ == '__main__':
     fileName = getFileName()
     ognId = getOgnId()
     blockSize = getBlockSize()
+
+    global OGN_CUBE_GEN;
+    OGN_CUBE_GEN = "C3" if ognId.startswith("C3") else "C2"
+    print('Assuming CUBE generation ' + TextColors.BOLD + OGN_CUBE_GEN + TextColors.ENDC)
 
     (cpuId, startAddr, dataLen, data) = loader.prepare(fileName, ognId)
     loader.flash(port=port, cpuId=cpuId, startAddr=startAddr, dataLen=dataLen, data=data, blockSize=blockSize)

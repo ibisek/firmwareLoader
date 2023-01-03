@@ -85,9 +85,18 @@ do
     #echo -e "--------------------------\nAllright, let's get ready!\n\n(1) Power cycle (OFF->ON) the tracker\n then\n(2) count to three, or (optimally) after ONE long LED flash\n and finally"
     #read -p "(3) press ENTER"
 
+    # Determine OGN CUBE generation from the ID:
+    OGN_CUBE_GEN=2
+    if [[ $ognId =~ C3.* ]]; then
+      OGN_CUBE_GEN=3
+    fi
+
     #./flashFirmware.sh /dev/$PORT $fwFile $ognId
-    ./flashFirmware.sh /dev/$PORT $fwFile $ognId 1024 # f103
-#    ./flashFirmware.sh /dev/$PORT $fwFile $ognId 256  # l152
+    if [[ $ognId -eq 2 ]]; then
+      ./flashFirmware.sh /dev/$PORT $fwFile $ognId 1024 # f103
+    else
+      ./flashFirmware.sh /dev/$PORT $fwFile $ognId 256  # l152
+    fi
 
     # sleep 2
     # /usr/local/bin/miniterm.py $PORT 115200
